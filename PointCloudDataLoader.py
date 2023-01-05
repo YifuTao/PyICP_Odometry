@@ -11,7 +11,7 @@ class PointCloudDataLoader:
         self.point_clouds = self.load_point_cloud()
 
     def load_point_cloud(self):
-        files = os.listdir(self.point_cloud_folder_path)
+        files = sorted(os.listdir(self.point_cloud_folder_path))
         print('Files in {}: {}'.format(self.point_cloud_folder_path, files))
         point_clouds = []
         for file in files:
