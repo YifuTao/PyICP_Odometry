@@ -9,7 +9,9 @@ It contains synced lidar point cloud, camera images, and poses.
 
 ## Quick Start
 `mkdir point_cloud_data`
+
 unzip the above CARLA lidar data
+
 `python point_cloud_loading.py`
 
 ## Colab example
