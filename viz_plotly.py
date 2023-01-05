@@ -37,14 +37,16 @@ class Plotly:
                                     line=dict(color='blue', width=10,),
                                     name='z-axis',
                                     legendgroup='axis'))
-    def add_point_cloud(self, points):
+    def add_point_cloud(self, points, name='point cloud',colour='auto'):
         assert(len(points.shape) == 2 and points.shape[1] == 3, 'The point cloud should be Nx3')
+        scatter3d_colour = points[:,2] if colour == 'auto' else colour
+
         point_cloud = go.Scatter3d(x=points[:,0], y=points[:,1], z=points[:,2],
                         mode='markers', 
                         marker=dict(
-                            size=1,color=points[:,2],
+                            size=1,color=scatter3d_colour,
                             colorscale='Viridis', 
                             colorbar=dict(title='Z',len=0.5)),
-                        name='point cloud',
+                        name=name,
                         )
         self.plotly_output.append(point_cloud)
