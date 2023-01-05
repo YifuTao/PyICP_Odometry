@@ -1,0 +1,3 @@
+# ignore point_cloud_data folder
+point_cloud_data/*
+__pycache__/*
