@@ -1,4 +1,3 @@
 # ignore point_cloud_data folder
+*.pyc
 point_cloud_data/*
-__pycache__/*
-coordinate_transformation/__pycache__/*
