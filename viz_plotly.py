@@ -38,6 +38,7 @@ class Plotly:
                                     name='z-axis',
                                     legendgroup='axis'))
     def add_point_cloud(self, points):
+        assert(len(points.shape) == 2 and points.shape[1] == 3, 'The point cloud should be Nx3')
         point_cloud = go.Scatter3d(x=points[:,0], y=points[:,1], z=points[:,2],
                         mode='markers', 
                         marker=dict(
