@@ -1,3 +1,7 @@
+'''
+Author: Clay Flannigan https://github.com/ClayFlannigan
+Source: https://github.com/ClayFlannigan/icp/blob/master/icp.py
+'''
 import numpy as np
 from sklearn.neighbors import NearestNeighbors
 
