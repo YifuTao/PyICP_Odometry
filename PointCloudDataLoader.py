@@ -1,9 +1,11 @@
 import os
 import numpy as np
 
-from viz_plotly import Plotly
-
 class PointCloudDataLoader:
+    """Load point cloud data from a folder
+    :param point_cloud_folder_path: path to the folder containing point cloud data
+    :return: a list of N x 3 point clouds
+    """
     def __init__(self, point_cloud_folder_path):
         self.point_cloud_folder_path = point_cloud_folder_path
         self.point_clouds = self.load_point_cloud()
@@ -24,24 +26,3 @@ class PointCloudDataLoader:
                 continue
         print('Loaded {} point clouds'.format(len(point_clouds)))
         return point_clouds
-
-
-        
-def main():
-    # Load point cloud data
-
-    current__path = os.path.dirname(os.path.abspath(__file__))
-    print('Current folder path is: {}'.format(current__path))
-    point_cloud_folder_path = os.path.join(current__path, 'point_cloud_data')
-    pc_loader = PointCloudDataLoader(point_cloud_folder_path)
-    
-
-    plotly = Plotly()
-    plotly.add_axies()
-    plotly.add_point_cloud(pc_loader.point_clouds[0])
-    # plotly.add_point_cloud(pc_loader.point_clouds[1])
-    plotly.visualise()
-    print('The visualisation is saved to {}'.format(plotly.save_path))
-
-if __name__ == '__main__':
-    main()
