@@ -59,6 +59,7 @@ class ICP:
     def icp_point_to_point(self):
         '''
         point-to-plane ICP by Clay Flannigan
+        https://github.com/ClayFlannigan/icp/blob/master/icp.py
         :return: 4x4 transformation matrix T_old__new i.e. transform new scan to old scan's frame
         '''
         N_sampled_points = min(self.old_scan.shape[0], self.new_scan.shape[0])
