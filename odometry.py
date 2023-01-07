@@ -1,114 +1,83 @@
 import os
 import numpy as np
-import open3d as o3d
 
-from viz_plotly import Plotly
 from PointCloudDataLoader import PointCloudDataLoader
-from icp import point2point_icp
-import simpleicp as point_to_plane_icp
-from util_pc import  range_filtering, random_sampling, np_to_o3d_pc
+from icp import ICP
+from util_pc import transform_pc, savePlyFromPtsRGB
+from util_spatial import convert_matrix_to_translation_quaternion
+
 
 class Odometry:
-    def __init__(self, point_cloud_folder_path):
-        self.pc_loader = PointCloudDataLoader(point_cloud_folder_path)
+    def __init__(self, point_clouds_np, point_clouds_name, save_path=None):
+        self.point_clouds_np = point_clouds_np
+        self.point_clouds_name = point_clouds_name
+        self.poses_stamped = []
+        if save_path is None:
+            self.save_path = os.path.dirname(os.path.abspath(__file__))
+        else: 
+            self.save_path = save_path
+            os.makedirs(self.save_path, exist_ok=True)
+        print('Save path is: {}'.format(self.save_path))
 
-class ICP:
-    def __init__(self, old_scan, new_scan):
-        assert old_scan.shape[1] == 3 and len(old_scan.shape) == 2
-        assert new_scan.shape[1] == 3 and len(new_scan.shape) == 2
-        self.old_scan = old_scan
-        self.new_scan = new_scan
-    
-    def range_filtering(self, min_range=4, max_range=50):
-        '''
-        :param min_range: minimum range in meters
-        :param max_range: maximum range in meters
-        :return: filtered point cloud
-        '''
-        self.old_scan = range_filtering(self.old_scan, min_range, max_range)
-        self.new_scan = range_filtering(self.new_scan, min_range, max_range)
 
-    def run_icp(self, method='point_to_plane'):
+    def compute_trajectory(self, method='point_to_plane', first_pose=np.eye(4), 
+                            save_individual_poses_ply=False, save_trajectory_txt=False):
         '''
         :param method: point-to-point or point-to-plane
+        :param first_pose: 4x4 transformation matrix for the first point cloud
         :return: 4x4 transformation matrix T_old__new i.e. transform new scan to old scan's frame
         '''
-        if method == 'point_to_point':
-            T_old_new = self.icp_point_to_point()
-        elif method == 'point_to_plane':
-            T_old_new = self.icp_point_to_plane()
-        else:
-            raise ValueError('Invalid ICP method. Choose from point_to_point or point_to_plane')
-        transformed_new_scan = self.transform_new_scan(T_old_new)
-        self.evaluate(T_old_new)
-        self.visualise(transformed_new_scan)
+        if save_trajectory_txt:
+            save_pose_file_path = os.path.join(self.save_path,'pose.txt')
+            with open(save_pose_file_path, 'w') as f:
+                f.write('# timestamp tx ty tz qx qy qz qw\n')  
+        trajectory = []
+        trajectory.append(first_pose)
+        self.write_pose_to_txt_TUM(first_pose, self.point_clouds_name[0], save_pose_file_path)
 
-    def icp_point_to_plane(self):
-        '''
-        point-to-plane ICP based on simpleICP
-        https://github.com/pglira/simpleICP/tree/master/python
-        :return: 4x4 transformation matrix T_old__new i.e. transform new scan to old scan's frame
-        '''
-        max_overlap_distance = 1 # only corresponds <= max_overlap_distance m are considered as overlapping points
-        pc_fix = point_to_plane_icp.PointCloud(self.old_scan, columns=['x', 'y', 'z'])
-        pc_mov = point_to_plane_icp.PointCloud(self.new_scan, columns=['x', 'y', 'z'])
-        icp_ = point_to_plane_icp.SimpleICP()
-        icp_.add_point_clouds(pc_fix, pc_mov)
-        H, X_mov_transformed, rigid_body_transformation_params = icp_.run(max_overlap_distance=1) 
-        return H
-    def icp_point_to_point(self):
-        '''
-        point-to-plane ICP by Clay Flannigan
-        https://github.com/ClayFlannigan/icp/blob/master/icp.py
-        :return: 4x4 transformation matrix T_old__new i.e. transform new scan to old scan's frame
-        '''
-        N_sampled_points = min(self.old_scan.shape[0], self.new_scan.shape[0])
-        old_scan_downsampled = random_sampling(self.old_scan, N_sampled_points)
-        new_scan_downsampled = random_sampling(self.new_scan, N_sampled_points)
-        T, distances, iterations = point2point_icp.icp(
-                    new_scan_downsampled, old_scan_downsampled, tolerance=0.0001)
-        return T
-        
-    def transform_new_scan(self, T):
-        '''
-        :param T: 4x4 transformation matrix T_old__new i.e. transform new scan to old scan's frame
-        :return: transformed new scan
-        '''
-        def transform_pc(T, pc):
-            homogeneous_pc = np.ones((pc.shape[0], 4))
-            homogeneous_pc[:, :3] = np.copy(pc)
-            transformed_pc = np.dot(T, homogeneous_pc.T).T
-            transformed_pc = transformed_pc[:, :3]
-            return transformed_pc
+       
 
-        transformed_pc = transform_pc(T, self.new_scan)
-        return transformed_pc
-    def evaluate(self, T, max_correspondence_distance=0.1):
+        for i in range(len(self.point_clouds_np)-1):
+            old_scan = self.point_clouds_np[i]
+            new_scan = self.point_clouds_np[i+1]
+            icp =  ICP(old_scan, new_scan)
+            icp.range_filtering(min_range=3, max_range=100)
+            if method == 'point_to_point':
+                T_old_new = icp.icp_point_to_point()
+            elif method == 'point_to_plane':
+                T_old_new = icp.icp_point_to_plane()
+            else: raise ValueError('method should be point_to_point or point_to_plane')
+            T_W_old = trajectory[i]
+            T_W_new = np.matmul(T_W_old, T_old_new)
+            trajectory.append(T_W_new)
+            if save_individual_poses_ply:
+                savePlyFromPtsRGB(transform_pc(T_W_new, new_scan), 
+                    os.path.join(self.save_path, self.point_clouds_name[i+1] + '.ply'))
+            if save_trajectory_txt:
+                self.write_pose_to_txt_TUM(T_W_new, self.point_clouds_name[i+1], save_pose_file_path)
+        return trajectory
+    def transform_trajectory_points(self, trajectory):
         '''
-        :param transformed_new_scan: transformed new scan
-        :return: mean distance between transformed new scan and old scan
+        :param trajectory: 4x4 transformation matrix T_WB i.e. transform points from base frame to world frame
+        :return: transformed points in world frame
         '''
-        o3d_pc_old = np_to_o3d_pc(self.old_scan)
-        o3d_pc_new = np_to_o3d_pc(self.new_scan)
-        evaluation = o3d.pipelines.registration.evaluate_registration(
-            o3d_pc_old, o3d_pc_new, max_correspondence_distance, T)
-        print(evaluation)
+        assert len(trajectory) == len(self.point_clouds_np)
+        transformed_points = []
+        for i in range(len(self.point_clouds_np)):
+            T = trajectory[i]
+            scan = self.point_clouds_np[i]
+            transformed_scan = transform_pc(T, scan)
+            transformed_points.append(transformed_scan)
+        return transformed_points
+            
     
-    def visualise(self, transformed_new_scan):
-        '''
-        :param transformed_new_scan: transformed new scan
-        :return: None
-        '''
-        plotly = Plotly()
-        plotly.add_axies()
-        plotly.add_point_cloud(self.old_scan,name='old',colour='red')
-        plotly.add_point_cloud(self.new_scan,name='new',colour='green')
-        plotly.add_point_cloud(transformed_new_scan,name='transformed_new_icp',colour='blue')
-
-        plotly.visualise()
-        print('The visualisation is saved to {}'.format(plotly.save_path))
-def main():
-    pass
-
-if __name__ == '__main__':
-    main()
+    def write_pose_to_txt_TUM(self, T, timestamp, file_path):
+        with open(file_path, 'a') as f:
+            translation, quaternion = convert_matrix_to_translation_quaternion(T)
+            f.write(str(timestamp)+' ')
+            f.write('{:.6f} {:.6f} {:.6f} {:.6f} {:.6f} {:.6f} {:.6f}\n'.format(
+                                translation[0], translation[1], translation[2],
+                                quaternion[0], quaternion[1], quaternion[2], quaternion[3]))
+            
+    
+        
