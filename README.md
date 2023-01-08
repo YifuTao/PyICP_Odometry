@@ -11,6 +11,11 @@ It contains synced lidar point cloud, camera images, and poses.
 
 ```bash
 pip install -r requirements.txt
+```
+
+If you are in China, you can run this instead:
+
+```
 pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 ```
 
