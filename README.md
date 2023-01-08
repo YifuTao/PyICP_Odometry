@@ -7,7 +7,15 @@ A public CARLA dataset is available: https://drive.google.com/drive/folders/1Ni6
 
 It contains synced lidar point cloud, camera images, and poses.
 
+## Dependency
+
+```bash
+pip install -r requirements.txt
+pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
+```
+
 ## Quick Start
+
 `mkdir point_cloud_data`
 
 unzip the above CARLA lidar data
