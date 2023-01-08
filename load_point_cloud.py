@@ -5,9 +5,9 @@ sys.path.append(os.path.join(os.path.dirname(__file__), 'util'))
 
 from PointCloudDataLoader import PointCloudDataLoader
 from odometry import Odometry
-from util_pc import savePlyFromPtsRGB
-from util_viz import Plotly
-from util_spatial import convert_translation_quaternion_to_matrix
+from util.util_pc import savePlyFromPtsRGB
+from util.util_viz import Plotly
+from util.util_spatial import convert_translation_quaternion_to_matrix
 
 def main():
     # Load point cloud data

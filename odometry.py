@@ -3,8 +3,8 @@ import numpy as np
 
 from PointCloudDataLoader import PointCloudDataLoader
 from icp import ICP
-from util_pc import transform_pc, savePlyFromPtsRGB
-from util_spatial import convert_matrix_to_translation_quaternion
+from util.util_pc import transform_pc, savePlyFromPtsRGB
+from util.util_spatial import convert_matrix_to_translation_quaternion
 
 
 class Odometry:

@@ -1,10 +1,10 @@
 import numpy as np
 import open3d as o3d
 
-from util_viz import Plotly
 import point2point_icp
 import simpleicp as point_to_plane_icp
-from util_pc import  range_filtering, random_sampling, np_to_o3d_pc, transform_pc
+from util.util_pc import  range_filtering, random_sampling, np_to_o3d_pc, transform_pc
+from util.util_viz import Plotly
 
 class ICP:
     def __init__(self, old_scan, new_scan):
