@@ -5,7 +5,7 @@ Source: https://github.com/ClayFlannigan/icp/blob/master/test.py
 
 import numpy as np
 import time
-import icp
+from icp_odometry.icp import point2point_icp
 
 # Constants
 N = 10                                    # number of random points in the dataset
@@ -50,7 +50,7 @@ def test_best_fit():
 
         # Find best fit transform
         start = time.time()
-        T, R1, t1 = icp.best_fit_transform(B, A)
+        T, R1, t1 = point2point_icp.best_fit_transform(B, A)
         total_time += time.time() - start
 
         # Make C a homogeneous representation of B
@@ -96,7 +96,7 @@ def test_icp():
 
         # Run ICP
         start = time.time()
-        T, distances, iterations = icp.icp(B, A, tolerance=0.000001)
+        T, distances, iterations = point2point_icp.icp(B, A, tolerance=0.000001)
         total_time += time.time() - start
 
         # Make C a homogeneous representation of B

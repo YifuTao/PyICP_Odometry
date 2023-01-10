@@ -1,10 +1,10 @@
 import os
 import numpy as np
 
-from PointCloudDataLoader import PointCloudDataLoader
-from icp import ICP
-from util.util_pc import transform_pc, savePlyFromPtsRGB
-from util.util_spatial import convert_matrix_to_translation_quaternion
+# from icp import ICP
+from icp_odometry.icp.icp import ICP
+from icp_odometry.util.util_pc import transform_pc, savePlyFromPtsRGB
+from icp_odometry.util.util_spatial import convert_matrix_to_translation_quaternion
 
 
 class Odometry:

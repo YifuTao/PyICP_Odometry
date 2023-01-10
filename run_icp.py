@@ -1,23 +1,24 @@
 import os
 import numpy as np
 import sys
-sys.path.append(os.path.join(os.path.dirname(__file__), 'util'))
-
-from PointCloudDataLoader import PointCloudDataLoader
-from odometry import Odometry
-from util.util_pc import savePlyFromPtsRGB
-from util.util_viz import Plotly
-from util.util_spatial import convert_translation_quaternion_to_matrix
+# sys.path.append(os.path.join(os.path.dirname(__file__), 'util'))
+print(sys.path)
+from icp_odometry.PointCloudDataLoader import PointCloudDataLoader
+from icp_odometry.odometry import Odometry
+from icp_odometry.util.util_pc import savePlyFromPtsRGB
+from icp_odometry.util.util_viz import Plotly
+from icp_odometry.util.util_spatial import convert_translation_quaternion_to_matrix
 
 def main():
     # Load point cloud data
+    
     current__path = os.path.dirname(os.path.abspath(__file__))
     print('Current folder path is: {}'.format(current__path))
     point_cloud_folder_path = os.path.join(current__path, 'point_cloud_data')
     pc_loader = PointCloudDataLoader(point_cloud_folder_path)
 
-    # first_n_point_clouds= 30
-    first_n_point_clouds = len(pc_loader.point_clouds)
+    first_n_point_clouds= 3
+    # first_n_point_clouds = len(pc_loader.point_clouds)
     # save original point clouds
     for i in range(first_n_point_clouds):
         savePlyFromPtsRGB(pc_loader.point_clouds[i], 
