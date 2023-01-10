@@ -1,6 +1,6 @@
-# Robot Perception Tutorial
+# Python ICP Odometry
 
-This repo contains examples for manipulating point cloud data and basic ICP odometry.
+This repo contains examples for manipulating point cloud data and basic ICP odometry implemented in Python.
 
 ## Data
 A public CARLA dataset is available: https://drive.google.com/drive/folders/1ZvZNciFTd71-3tSiCzUWCZnVxEyuGBAQ?usp=share_link
